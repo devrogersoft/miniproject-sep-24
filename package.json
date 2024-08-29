@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/devrogersoft/miniproject-sep-24#readme",
   "dependencies": {
-    "express": "^4.19.2"
+    "express": "^4.19.2",
+    "mongoose": "^8.6.0"
   }
 }
