@@ -109,9 +109,7 @@ async function updateBranch(req, res) {
     };
 
     const result = await branch.findOne({ branchCode: Number(req.params.code) });
-
     if (result != null) {      
-      // const data = await branch.findOneAndUpdate(filter, update, options);
       const data = await branch.findOneAndUpdate(filter, update, options);
       if (!data) {
         res.status(401).json({ "Message": "Branch Not Updated" });      }
@@ -126,8 +124,8 @@ async function updateBranch(req, res) {
   } catch (err) {
     console.log(err);
     res.status(401).json({ "Message": err })
-  }
-  finally {
+  } 
+    finally {
   }
 }
 
