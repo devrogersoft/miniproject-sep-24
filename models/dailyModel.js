@@ -13,6 +13,7 @@ const salesSchema = new mongoose.Schema(
         poRef: { type: String, required: false },
         comment: { type: String, required: false },
         driverDetails: { type: String, required: false },
+        driverCommision: { type: Boolean, required: true },
         totalAmount: { type: mongoose.Types.Decimal128, required: true },
         productDetails: [{
             material: { type: Number, required: true },
