@@ -12,6 +12,21 @@ const insertCustomer = async (req, res) => {
   }
 };
 
+
+const findAllCustomer = async (req, res) => {
+  try {
+    const customers = await Customer.find(); // Correct method to find multiple documents
+    if (customers.length > 0) {
+      res.status(200).json(customers);
+    } else {
+      res.status(404).json({ message: "Customers not found" });
+    }
+  } catch (error) {
+    console.error("Error finding customers:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
 // Find a customer by customerCode
 const findCustomer = async (req, res) => {
   try {
@@ -64,6 +79,7 @@ const deleteCustomer = async (req, res) => {
 module.exports = {
   insertCustomer,
   findCustomer,
+  findAllCustomer,
   updateCustomer,
   deleteCustomer,
 };

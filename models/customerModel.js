@@ -72,13 +72,14 @@ customerSchema.pre('save', function (next) {
   }
   next();
 });
+
 // For updates, prevent `createdDate` from being changed
 customerSchema.pre('findOneAndUpdate', function (next) {
-    this._update.$set = this._update.$set || {};
-    this._update.$set.lastUpdatedDate = new Date();
-    delete this._update.createdDate; // Ensure `createdDate` is not modified
-    next();
-  });
-  
-  const Customer = mongoose.model("Customer", customerSchema);
-  module.exports = Customer;
+  this._update.$set = this._update.$set || {};
+  this._update.$set.lastUpdatedDate = new Date();
+  delete this._update.createdDate; // Ensure `createdDate` is not modified
+  next();
+});
+
+const Customer = mongoose.model("Customer", customerSchema);
+module.exports = Customer;
