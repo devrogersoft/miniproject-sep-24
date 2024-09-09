@@ -5,4 +5,6 @@ const router = express.Router();
 
 
 router.post('/', fm.salesInvoice);
+router.delete('/:invoiceNo', fm.cancelInvoice);
+router.get('/:invoiceNo', fm.getInvoice);
 module.exports = router;
