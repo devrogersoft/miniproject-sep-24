@@ -1,9 +1,7 @@
 const dailySales = require("../models/dailyModel");
 const Material = require("../models/materialModel");
 const branch = require("../models/branchModel");
-const {
-  json
-} = require("generate-schema");
+//const {  json } = require("generate-schema");
 
 async function getInvoice(req, res) {
   try {
