@@ -1,9 +1,17 @@
 const dailySales = require("../models/dailyModel");
+const branch = require("../models/branchModel");
+const Customer = require("../models/customerModel");
+let qty ;
+let tax;
+let avgPrice;
+let totalitem;
 
 async function getInvoice(req, res) {
   try {
-    const payload = [];
+    const payload = []; // items
     const headers = {};
+    const total = {};
+    const branchName = {};
     const final = {};
     var query = {
       branchCode: req.body.branchCode,
@@ -25,39 +33,112 @@ async function getInvoice(req, res) {
     headers.printDate = year + "-" + month + "-" + date;
     headers.from = req.body.dateFrom;
     headers.to = req.body.dateTo;
+
+
+    const branch_data = await branch.findOne({
+      branchCode: Number(req.body.branchCode)
+    });
+    branchName.name = branch_data.branchName;
+    branchName.Address = branch_data.address;
+    branchName.Address1 = branch_data.mobileNo;
+    branchName.Address2 = "";
+    branchName.TIN = branch_data.tinNo;
+    branchName.GSTIN = branch_data.gstNo;
+
     headers.branchName = req.body.branchCode;
+    headers.branchName = branchName;
 
     if (result.length > 0) {
       if (req.body.cancelled === false) {
+        qty = "";
+        tax = "";
+        avgPrice = "";
+        totalitem = "";
         for (let index = 0; index < result.length; index++) {
           const element = result[index];
-          if (element.returnRef != "") {
-            // delete result[index];
+          console.log(element.orderType);
+
+
+          if (element.orderType === 'OR') {
+            var lv_invoicetype = "Sales"
           } else {
+            lv_invoicetype = "Return"
+          }
+          lv_date = element.salesDate;
+          date = lv_date.getDate();
+          month = lv_date.getMonth() + 1;
+          year = lv_date.getFullYear();  
+          const customer = await Customer.findOne({ customerCode: element.custCode });
+          if (element.returnRef != "") {
+
+          } else {
+
+    
+
+            element.productDetails.forEach(productDetails => {
+              qty = ( Number(qty) + Number(productDetails.quantity) );
+              tax += productDetails.taxAmount;
+              totalitem += productDetails.netAmount;        
+            });                
+
             payload.push({
               invoiceNo: element.invoiceNo,
-              branchCode: element.branchCode,
-              salesAmount: element.salesAmount,
-              salesDate: element.salesDate,
-              custCode: element.custCode,
+              invoicetype: lv_invoicetype,    
+              custCode :customer.customerName,          
+              salesDate: year + "-" + month + "-" + date,     
+              taxAmount : tax,
+              quantity : qty,            
+              totalPrice : element.totalAmount,  
             });
           }
         }
       } else {
+
+        qty = "";
+        tax = "";
+        avgPrice = "";
+        totalitem = "";
         for (let index = 0; index < result.length; index++) {
           const element = result[index];
+          console.log(element.orderType);
+          if (element.orderType === 'OR') {
+            var lv_invoicetype = "Sales"
+          } else {
+            lv_invoicetype = "Return"
+          }
+           element.productDetails.forEach(productDetails => {
+            qty = ( Number(qty) + Number(productDetails.quantity) );
+            tax += productDetails.taxAmount;
+            totalitem += productDetails.netAmount;        
+          });  
+          lv_date = element.salesDate;
+          date = lv_date.getDate();
+          month = lv_date.getMonth() + 1;
+          year = lv_date.getFullYear();  
+          const customer = await Customer.findOne({ customerCode: element.custCode });
+
           payload.push({
             invoiceNo: element.invoiceNo,
-            invoicetype: element.orderType,
-            branchCode: element.branchCode,
-            salesAmount: element.salesAmount,
-            salesDate: element.salesDate,
-            custCode: element.custCode,
+            invoicetype: lv_invoicetype,            
+            salesDate: year + "-" + month + "-" + date,     
+            totalPrice : element.totalAmount,      
+            custCode :customer.customerName,  
           });
         }
+
+  
       }
+
+      total.qty = qty;
+      total.tax = tax;
+      total.avgPrice = totalitem /  qty;
+      total.totalSale = totalitem;
+
+      headers.total = total;
       final.headers = headers;
       final.items = payload;
+
+
       res.status(200).json(final);
     } else {
       res.status(400).json({
@@ -66,8 +147,7 @@ async function getInvoice(req, res) {
     }
   } catch (error) {
     console.log(error);
-  } finally {
-  }
+  } finally {}
 }
 
 module.exports = {
