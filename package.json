@@ -19,7 +19,10 @@
   "dependencies": {
     "ejson": "^2.2.3",
     "express": "^4.19.2",
+    "handlebars": "^4.7.8",
     "miniproject-sep-24": "file:",
-    "mongoose": "^8.6.0"
+    "mongoose": "^8.6.0",
+    "pdf": "file:",
+    "puppeteer": "^23.3.0"
   }
 }

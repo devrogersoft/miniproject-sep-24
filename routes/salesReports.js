@@ -5,6 +5,7 @@ const router = express.Router();
 const { validateBody }  = require("../utils/validate");
 
 router.post('/',validateBody, fm.getInvoice);
+router.get('/', fm.getInvoice);
 
 module.exports = router;
 

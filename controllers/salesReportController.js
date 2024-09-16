@@ -1,7 +1,9 @@
 const dailySales = require("../models/dailyModel");
 const branch = require("../models/branchModel");
 const Customer = require("../models/customerModel");
-let qty ;
+const { compileTemplateToHtml, generateHtmlToPdf } = require("../utils/pdf");
+
+let qty;
 let tax;
 let avgPrice;
 let totalitem;
@@ -56,9 +58,6 @@ async function getInvoice(req, res) {
         totalitem = "";
         for (let index = 0; index < result.length; index++) {
           const element = result[index];
-          console.log(element.orderType);
-
-
           if (element.orderType === 'OR') {
             var lv_invoicetype = "Sales"
           } else {
@@ -67,28 +66,29 @@ async function getInvoice(req, res) {
           lv_date = element.salesDate;
           date = lv_date.getDate();
           month = lv_date.getMonth() + 1;
-          year = lv_date.getFullYear();  
-          const customer = await Customer.findOne({ customerCode: element.custCode });
+          year = lv_date.getFullYear();
+          const customer = await Customer.findOne({
+            customerCode: element.custCode
+          });
           if (element.returnRef != "") {
 
           } else {
+            element.productDetails.forEach(items => {
 
-    
-
-            element.productDetails.forEach(productDetails => {
-              qty = ( Number(qty) + Number(productDetails.quantity) );
-              tax += productDetails.taxAmount;
-              totalitem += productDetails.netAmount;        
-            });                
+              const jsonData = JSON.parse(JSON.stringify(items));             
+              qty = parseFloat(qty + jsonData.qunatity);          
+              tax =  parseFloat( tax + jsonData.taxAmount);
+              totalitem = parseFloat(totalitem + jsonData.netAmount);
+            });
 
             payload.push({
               invoiceNo: element.invoiceNo,
-              invoicetype: lv_invoicetype,    
-              custCode :customer.customerName,          
-              salesDate: year + "-" + month + "-" + date,     
-              taxAmount : tax,
-              quantity : qty,            
-              totalPrice : element.totalAmount,  
+              invoicetype: lv_invoicetype,
+              custCode: customer.customerName,
+              salesDate: year + "-" + month + "-" + date,
+              taxAmount: tax,
+              quantity: qty,
+              totalPrice: element.totalAmount,
             });
           }
         }
@@ -100,46 +100,57 @@ async function getInvoice(req, res) {
         totalitem = "";
         for (let index = 0; index < result.length; index++) {
           const element = result[index];
-          console.log(element.orderType);
+
           if (element.orderType === 'OR') {
-            var lv_invoicetype = "Sales"
+            var lv_invoicetype = "Sales";
           } else {
-            lv_invoicetype = "Return"
+            lv_invoicetype = "Return";
           }
-           element.productDetails.forEach(productDetails => {
-            qty = ( Number(qty) + Number(productDetails.quantity) );
-            tax += productDetails.taxAmount;
-            totalitem += productDetails.netAmount;        
-          });  
+          element.productDetails.forEach(items => {
+            const jsonData = JSON.parse(JSON.stringify(items));             
+            qty = parseFloat(qty + jsonData.qunatity);          
+            tax =  parseFloat( tax + jsonData.taxAmount);
+            totalitem = parseFloat(totalitem + jsonData.netAmount);
+          });
           lv_date = element.salesDate;
           date = lv_date.getDate();
           month = lv_date.getMonth() + 1;
-          year = lv_date.getFullYear();  
-          const customer = await Customer.findOne({ customerCode: element.custCode });
+          year = lv_date.getFullYear();
+          const customer = await Customer.findOne({
+            customerCode: element.custCode
+          });
 
           payload.push({
             invoiceNo: element.invoiceNo,
-            invoicetype: lv_invoicetype,            
-            salesDate: year + "-" + month + "-" + date,     
-            totalPrice : element.totalAmount,      
-            custCode :customer.customerName,  
+            invoicetype: lv_invoicetype,
+            salesDate: year + "-" + month + "-" + date,
+            totalPrice: element.totalAmount,
+            custCode: customer.customerName,
           });
         }
 
-  
+
       }
 
       total.qty = qty;
       total.tax = tax;
-      total.avgPrice = totalitem /  qty;
+      total.avgPrice = totalitem / qty;
       total.totalSale = totalitem;
 
       headers.total = total;
       final.headers = headers;
-      final.items = payload;
+      final.items = payload;     
+      
+      const html = await compileTemplateToHtml("template",final);
+      const pdf = await generateHtmlToPdf(html);
+           
+      res.set({
+        "Content-Type": "application/pdf",
+        "Content-Length": pdf.length,
+      });
+      res.send(pdf);
 
-
-      res.status(200).json(final);
+      // res.status(200).json(final);
     } else {
       res.status(400).json({
         Message: "No sales on the Specified Selection",
