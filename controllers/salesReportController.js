@@ -143,12 +143,13 @@ async function getInvoice(req, res) {
       
       const html = await compileTemplateToHtml("template",final);
       const pdf = await generateHtmlToPdf(html);
-           
+      const buf = Buffer.from(pdf);
+      console.log(buf);
       res.set({
         "Content-Type": "application/pdf",
         "Content-Length": pdf.length,
       });
-      res.send(pdf);
+      res.send(buf);
 
       // res.status(200).json(final);
     } else {
